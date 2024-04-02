@@ -115,7 +115,7 @@ def _get_parser():
         "--fittype",
         dest="fittype",
         action="store",
-        choices=["loglin", "curvefit"],
+        choices=["loglin", "curvefit", "zhao"],
         help=(
             "Desired T2*/S0 fitting method. "
             '"loglin" means that a linear model is fit '
@@ -582,7 +582,7 @@ def tedana_workflow(
 
     if t2smap is None:
         LGR.info("Computing T2* map")
-        t2s_limited, s0_limited, t2s_full, s0_full = decay.fit_decay(
+        t2s_limited, s0_limited, t2s_full, s0_full, offset = decay.fit_decay(
             catd, tes, mask_denoise, masksum_denoise, fittype
         )
 
@@ -593,6 +593,8 @@ def tedana_workflow(
         t2s_full[t2s_full > cap_t2s * 10] = cap_t2s
         io_generator.save_file(utils.millisec2sec(t2s_full), "t2star img")
         io_generator.save_file(s0_full, "s0 img")
+        if fittype == "zhao":
+            io_generator.save_file(offset, "offset img")
 
         if verbose:
             io_generator.save_file(utils.millisec2sec(t2s_limited), "limited t2star img")

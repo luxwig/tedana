@@ -90,7 +90,7 @@ def _get_parser():
         "--fittype",
         dest="fittype",
         action="store",
-        choices=["loglin", "curvefit"],
+        choices=["loglin", "curvefit", "zhao"],
         help="Desired Fitting Method"
         '"loglin" means that a linear model is fit'
         " to the log of the data, default"
@@ -173,7 +173,7 @@ def t2smap_workflow(
     mask : :obj:`str`, optional
         Binary mask of voxels to include in TE Dependent ANAlysis. Must be spatially
         aligned with `data`.
-    fittype : {'loglin', 'curvefit'}, optional
+    fittype : {'loglin', 'curvefit', 'zhao'}, optional
         Monoexponential fitting method.
         'loglin' means to use the the default linear fit to the log of
         the data.
@@ -257,11 +257,11 @@ def t2smap_workflow(
 
     LGR.info("Computing adaptive T2* map")
     if fitmode == "all":
-        (t2s_limited, s0_limited, t2s_full, s0_full) = decay.fit_decay(
+        (t2s_limited, s0_limited, t2s_full, s0_full, offset) = decay.fit_decay(
             catd, tes, mask, masksum, fittype
         )
     else:
-        (t2s_limited, s0_limited, t2s_full, s0_full) = decay.fit_decay_ts(
+        (t2s_limited, s0_limited, t2s_full, s0_full, offset) = decay.fit_decay_ts(
             catd, tes, mask, masksum, fittype
         )
 
@@ -297,6 +297,9 @@ def t2smap_workflow(
         "limited s0 img",
     )
     io_generator.save_file(OCcatd, "combined img")
+
+    if fittype == "zhao":
+        io_generator.save_file(offset, "offset img")
 
     # Write out BIDS-compatible description file
     derivative_metadata = {
